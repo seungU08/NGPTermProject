@@ -33,7 +33,7 @@ vector<Player> players = {};
 class Client
 {
 public:
-	char* name;
+	char* name[20];
 	int ID;
 
 	Client()
@@ -49,7 +49,7 @@ HANDLE hGameStartEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 bool gameOver = false;
 
 // 랜덤 ID부여
-int makeRandomID();
+int makeID();
 // 게임 데이터 받기
 void receiveGameData(SOCKET s);
 // 게임 데이터 전송
@@ -67,17 +67,20 @@ DWORD WINAPI networkThread(LPVOID arg)
 	Client client;
 
 	// 닉네임 받기
-	retval = recv(clientSock, client.name, 20, 0);
+	retval = recv(clientSock, client.name, sizeof(client.name), 0);
 	if (retval == SOCKET_ERROR) err_display("receive - clientName");
 
 	// ID 할당
-	retval = send(clientSock, (char*)makeRandomID(), sizeof(client.ID), 0);
+	retval = send(clientSock, (char*)makeID(), sizeof(client.ID), 0);
 	if (retval == SOCKET_ERROR) err_display("send - clientID");
 
 	while (true)
 	{
-		// 매칭 돌릴 때 까지 대기
-		WaitForSingleObject(hMatchingEvent, INFINITE);
+		// 매칭 신호 수신
+		unsigned short start;
+		retval = recv(s, (char*)&start, sizeof(start), 0);
+		if (retval == SOCKET_ERROR) err_display("receive - c_playetPacket");
+		if (start != GAMESTART) err_display("receive - start");
 
 		// 큐에 입장
 		waitClientList.push(client);
@@ -111,9 +114,9 @@ DWORD WINAPI networkThread(LPVOID arg)
 	}
 }
 
-int makeRandomID()
+int makeID()
 {
-	return rand() / 1000;
+	return waitClientList.size() + 1;
 }
 
 void receiveGameData(SOCKET s)
@@ -141,27 +144,27 @@ void sendGameData(SOCKET s)
 	int retval;
 
 	s_enemyPacket enemyPacket;
-	retval = recv(s, (char*)&enemyPacket, sizeof(enemyPacket), 0);
+	retval = send(s, (char*)&enemyPacket, sizeof(enemyPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - enemyPacket");
 
 	s_itemPacket itemPacket;
-	retval = recv(s, (char*)&itemPacket, sizeof(itemPacket), 0);
+	retval = send(s, (char*)&itemPacket, sizeof(itemPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - itemPacket");
 
 	s_bulletPacket bulletPacket;
-	retval = recv(s, (char*)&bulletPacket, sizeof(bulletPacket), 0);
+	retval = send(s, (char*)&bulletPacket, sizeof(bulletPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - bulletPacket");
 
 	s_obstaclePacket obstaclePacket;
-	retval = recv(s, (char*)&obstaclePacket, sizeof(obstaclePacket), 0);
+	retval = send(s, (char*)&obstaclePacket, sizeof(obstaclePacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - obstaclePacket");
 
 	s_UIPacket UIPacket;
-	retval = recv(s, (char*)&UIPacket, sizeof(UIPacket), 0);
+	retval = send(s, (char*)&UIPacket, sizeof(UIPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - UIPacket");
 
 	s_playerPacket playerPacket;
-	retval = recv(s, (char*)&playerPacket, sizeof(playerPacket), 0);
+	retval = send(s, (char*)&playerPacket, sizeof(playerPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - playerPacket");
 }
 
@@ -170,7 +173,7 @@ void sendResult(SOCKET s, int result)
 	int retval;
 
 	s_UIPacket UIPacket(result);
-	retval = recv(s, (char*)&UIPacket, sizeof(UIPacket), 0);
+	retval = send(s, (char*)&UIPacket, sizeof(UIPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - UIPacket");
 }
 
@@ -239,6 +242,7 @@ int main(int argc, char* argv[])
 			gameMode = "PlayMode";
 			initialization();
 			hThread = CreateThread(NULL, 0, gameThread, (LPVOID)client_sock, 0, NULL);
+			SetEvent(hGameStartEvent);
 			if (hThread == NULL) { closesocket(client_sock); }
 			else { CloseHandle(hThread); }
 		}
