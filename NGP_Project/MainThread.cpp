@@ -33,12 +33,12 @@ vector<Player> players = {};
 class Client
 {
 public:
-	char* name[20];
+	char name[20];
 	int ID;
 
 	Client()
 	{
-		name = NULL;
+		*name = NULL;
 		ID = -1;
 	}
 };
@@ -78,7 +78,7 @@ DWORD WINAPI networkThread(LPVOID arg)
 	{
 		// 매칭 신호 수신
 		unsigned short start;
-		retval = recv(s, (char*)&start, sizeof(start), 0);
+		retval = recv(clientSock, (char*)&start, sizeof(start), 0);
 		if (retval == SOCKET_ERROR) err_display("receive - c_playetPacket");
 		if (start != GAMESTART) err_display("receive - start");
 
@@ -89,10 +89,10 @@ DWORD WINAPI networkThread(LPVOID arg)
 		WaitForSingleObject(hGameStartEvent, INFINITE);
 
 		// 게임 시작 신호 전송
-		s_UIPacket start(GAMESTART);
+		s_UIPacket gameStart(GAMESTART);
 
-		retval = send(clientSock, (char*)&start, sizeof(start), 0);
-		if (retval == SOCKET_ERROR) err_display("send - s_UIPacket(start)");
+		retval = send(clientSock, (char*)&gameStart, sizeof(gameStart), 0);
+		if (retval == SOCKET_ERROR) err_display("send - s_UIPacket(gameStart)");
 
 		// initPacket 전송
 		s_initPacket init;

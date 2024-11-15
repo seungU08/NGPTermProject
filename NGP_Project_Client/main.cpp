@@ -1,6 +1,5 @@
 #include "Common.h"
 #include "Packet.h"
-#include "../NGP_Project/MainThread.cpp"
 
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT 9000
@@ -66,7 +65,7 @@ int main()
 
 	while (true)
 	{
-		// 게임 시작 이벤트 감지
+		// 게임 시작 이벤트 감지 (작성 필요)
 
 		// 게임 매칭 신호 전송
 		unsigned short matchingStart = GAMESTART;
