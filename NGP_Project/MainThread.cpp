@@ -19,15 +19,7 @@
 using namespace std;
 
 string gameMode = "Menumode";
-int nextClientID = 1;
-string clientName;
 
-// 초기화할 객체들( 게임스레드 보고 수정 예정)
-vector<Enemy> enemies = {};
-vector<Obstacle> obstacles = {};
-vector<Bullet> bullets = {};
-vector<Item> items = {};
-vector<Player> players = {};
 
 
 class Client
@@ -245,6 +237,10 @@ int main(int argc, char* argv[])
 			SetEvent(hGameStartEvent);
 			if (hThread == NULL) { closesocket(client_sock); }
 			else { CloseHandle(hThread); }
+			for (int i = 0; i < 3; ++i) {
+				waitClientList.pop();
+			}
+
 		}
 	}
 
@@ -257,11 +253,3 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-
-void initialization() {
-	enemies.clear();
-	obstacles.clear();
-	bullets.clear();
-	items.clear();
-	players.clear();
-}

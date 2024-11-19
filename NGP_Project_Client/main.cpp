@@ -53,7 +53,7 @@ int main()
 
 	// 닉네임 입력 받기 (수정 필요)
 	Client client;
-	scanf("%s", client.name);
+
 
 	// 닉네임 전송
 	retval = send(sock, client.name, sizeof(client.name), 0);
