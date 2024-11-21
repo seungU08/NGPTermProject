@@ -18,9 +18,6 @@
 
 using namespace std;
 
-string gameMode = "Menumode";
-
-
 
 class Client
 {
@@ -48,8 +45,6 @@ void receiveGameData(SOCKET s);
 void sendGameData(SOCKET s);
 // 게임 결과 전송
 void sendResult(SOCKET s, int result);
-// 초기화함수
-void initialization();
 
 
 DWORD WINAPI networkThread(LPVOID arg)
@@ -231,8 +226,6 @@ int main(int argc, char* argv[])
 
 		// 게임스레드 생성
 		if (waitClientList.size() == 3) {
-			gameMode = "PlayMode";
-			initialization();
 			hThread = CreateThread(NULL, 0, gameThread, (LPVOID)client_sock, 0, NULL);
 			SetEvent(hGameStartEvent);
 			if (hThread == NULL) { closesocket(client_sock); }
